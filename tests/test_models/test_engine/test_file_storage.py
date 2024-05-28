@@ -113,3 +113,38 @@ class TestFileStorage(unittest.TestCase):
         with open("file.json", "r") as f:
             js = f.read()
         self.assertEqual(json.loads(string), json.loads(js))
+
+    def test_get(self):
+        """test to retrieve an object of class as requested."""
+        newSt = State(name='KZN')
+        newSt.save()
+
+        self.assertEqual(newSt.id, models.storage.get(State, newSt.id).id)
+        self.assertEqual(newSt.name, models.storage.get(State, newSt.id).name)
+        self.assertIsNot(newSt, models.storage.get(State, newSt.id + '000'))
+        self.assertIsNone(models.storage.get(State, newSt.id + '000'))
+        self.assertIsNone(models.storage.get(None, newSt.id))
+        with self.assertRaises(TypeError):
+            models.storage.get(State, newSt.id, 'none')
+        with self.assertRaises(TypeError):
+            models.storage.get(State)
+        with self.assertRaises(TypeError):
+            models.storage.get()
+
+    def test_count(self):
+        """ tests the count method"""
+        self.asserIs(type(models.storage.count()), int)
+        self.asserIs(type(models.storage.count(None)), int)
+        self.asserIs(type(models.storage.count(int)), int)
+        self.asserIs(type(models.storage.count(State)), int)
+        State(name='Gauteng').save()
+
+        self.assertGreater(models.storage.count(State), 0)
+        self.assertEqual(models.storage.count(), models.storage.count(None))
+        Amenity(name='Private pool').save()
+        self.assertRaises(TypeError):
+            models.storage.count(State, "None")
+
+
+if __name__ == "__main__":
+    unittest.main()

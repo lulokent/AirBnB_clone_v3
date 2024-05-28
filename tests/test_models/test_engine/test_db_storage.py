@@ -15,12 +15,13 @@ from models.review import Review
 from models.state import State
 from models.user import User
 import json
-import os
+from os import getenv
 import pep8
 import unittest
 DBStorage = db_storage.DBStorage
 classes = {"Amenity": Amenity, "City": City, "Place": Place,
            "Review": Review, "State": State, "User": User}
+db = getenv("HBNB_TYPE_STORAGE")
 
 
 class TestDBStorageDocs(unittest.TestCase):
@@ -86,3 +87,38 @@ class TestFileStorage(unittest.TestCase):
     @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
     def test_save(self):
         """Test that save properly saves objects to file.json"""
+
+
+class Test_DBStorage(unittest.TestCase):
+    """ Tests the DB Storage class method."""
+
+    @unittest.skipIf(db != 'db', 'no test on db storage')
+    def test_get(self):
+        """Tests the DB storage class methods"""
+        nState = State(name="Gauteng")
+        nState.save()
+        newUsr = User(email="luzuko@foo.com", password="abc")
+        newUsr.save()
+
+        self.assertIs(nState, models.storage.get("State", nState.id))
+        self.assertIs(None, models.storage.get("State", "000"))
+        self.assertIs(None, models.storage.get("none", "000"))
+        self.assertIs(nUsr, models.storage.get("User", newUsr.id))
+
+    @unittest.skipIf(db != 'db', "no test no db storage")
+    def test_count(self):
+        """Test counting of the number objects in a class"""
+        kount = models.storage.count()
+        self.assertEqual(models.storage.count("None"), 0)
+
+        nState = State(name="FreeState")
+        nState.save()
+        testUsr = User(email="luzuko@foo.com", password="Now2")
+        testUSr.save()
+
+        self.assertEqual(models.storage.count("State"), kount + 1)
+        self.assertEqual(models.storage.count(), kount + 2)
+
+
+if __name__ == "__main__":
+    unittest.main()
